@@ -4,3 +4,9 @@ build/
 dist/
 *.spec
 .venv/
+installer/output/
+*.log
+Thumbs.db
+.DS_Store
+APP_SOURCE_SNAPSHOT.md
+GITHUB_README.md

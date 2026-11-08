@@ -1,0 +1,43 @@
+name: Windows installer - verification build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "update_check.py"
+      - "icons/**"
+      - "build_exe.py"
+      - "build_exe.bat"
+      - "build_installer.bat"
+      - "installer/**"
+      - "requirements*.txt"
+      - ".github/workflows/windows-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+      - name: Build EXE and installer
+        shell: cmd
+        run: build_installer.bat /nopause
+      - name: Check installer exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'installer/output/QuickPhotoViewer-Setup-2.9.0.exe')) { throw 'Installer missing' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QuickPhotoViewer-Windows-Unsigned-TestBuild
+          path: installer/output/QuickPhotoViewer-Setup-2.9.0.exe
+          if-no-files-found: error
