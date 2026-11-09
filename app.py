@@ -639,17 +639,26 @@ class PhotoViewer(QMainWindow):
             QMessageBox.information(self,"Save a copy","No image loaded."); return
         path,_=QFileDialog.getSaveFileName(self,"Save a copy","",
             "PNG (*.png);;JPEG (*.jpg);;WEBP (*.webp);;BMP (*.bmp)")
-        if path and self.current_pixmap.save(path):
+        if not path: return
+        # Save the displayed rotation, but preserve the image's original
+        # transparency rather than baking the viewer-only frame colour in.
+        pix = self.transformed_pixmap()
+        if pix is not None and pix.save(path):
             self.statusBar().showMessage(f"  Saved → {path}",3000)
+        else:
+            QMessageBox.warning(self, "Save a copy", f"Could not save the image:\n{path}")
 
     def load_directory(self,folder,selected=None):
         try:
-            self.files=sorted((p for p in folder.iterdir()
-                               if p.is_file() and p.suffix.lower() in SUPPORTED),
-                              key=lambda p:p.name.lower())
-            self.image_cache.clear()
+            new_files=sorted((p for p in folder.iterdir()
+                              if p.is_file() and p.suffix.lower() in SUPPORTED),
+                             key=lambda p:p.name.lower())
         except OSError as exc: QMessageBox.warning(self,APP_NAME,str(exc)); return
-        if not self.files: QMessageBox.information(self,APP_NAME,"No supported images found."); return
+        if not new_files:
+            QMessageBox.information(self,APP_NAME,"No supported images found.")
+            return  # Keep the previously opened folder and image intact.
+        self.files=new_files
+        self.image_cache.clear()
         self.index=self.files.index(selected) if selected in self.files else 0
         self.undo_stack.clear(); self.redo_stack.clear(); self._refresh_undo_actions()
         self.begin_thumbnails(); self.load_current()
@@ -706,7 +715,9 @@ class PhotoViewer(QMainWindow):
         if not self.files or self.index<0: return
         path=self.files[self.index]
         if path in self.image_cache:
-            self.current_pixmap=QPixmap(self.image_cache[path])
+            # A recent hit remains cached while older photos are evicted first.
+            self.current_pixmap=QPixmap(self.image_cache.pop(path))
+            self.image_cache[path]=self.current_pixmap
         else:
             pix = load_image(path)
             if pix is None:
@@ -716,13 +727,24 @@ class PhotoViewer(QMainWindow):
                 return
             self.current_pixmap=pix
             self.image_cache[path]=QPixmap(self.current_pixmap)
-            while len(self.image_cache)>5: self.image_cache.pop(next(iter(self.image_cache)))
+            self._trim_image_cache()
         self.rotation=0; self.zoom_factor=1.0
         self.undo_stack.clear(); self.redo_stack.clear(); self._refresh_undo_actions()
         self.setWindowTitle(f"{path.name} — {APP_NAME}")
         self.refresh_image(); self.thumb_list.setCurrentRow(self.index)
         self.thumb_list.scrollToItem(self.thumb_list.item(self.index)); self.update_status()
         self._restart_photo_idle()
+
+    def _trim_image_cache(self):
+        # QPixmap copies share pixel data, but keeping five 24–50 MP photos
+        # alive can still consume hundreds of MB on ordinary Windows PCs.
+        budget = 128 * 1024 * 1024
+        def estimated_bytes(pix):
+            return pix.width() * pix.height() * max(pix.depth(), 8) // 8
+        total = sum(estimated_bytes(pix) for pix in self.image_cache.values())
+        while len(self.image_cache) > 5 or (total > budget and len(self.image_cache) > 1):
+            oldest = next(iter(self.image_cache))
+            total -= estimated_bytes(self.image_cache.pop(oldest))
 
     def replace_current_pixmap(self,pixmap,record_undo=True):
         if record_undo: self._push_undo()
@@ -731,6 +753,8 @@ class PhotoViewer(QMainWindow):
     # ================================================== view
     def transformed_pixmap(self):
         if not self.current_pixmap: return None
+        # Do not run a costly full-image transform for the common 0° case.
+        if self.rotation % 360 == 0: return self.current_pixmap
         t=QTransform(); t.rotate(self.rotation)
         return self.current_pixmap.transformed(t,Qt.TransformationMode.SmoothTransformation)
     def refresh_image(self):
@@ -743,9 +767,10 @@ class PhotoViewer(QMainWindow):
                               Qt.AspectRatioMode.KeepAspectRatio,
                               Qt.TransformationMode.SmoothTransformation)
         else:
-            target=pix.scaled(pix.size()*self.zoom_factor,
-                              Qt.AspectRatioMode.KeepAspectRatio,
-                              Qt.TransformationMode.SmoothTransformation)
+            target=(pix if abs(self.zoom_factor-1.0)<1e-9 else
+                    pix.scaled(pix.size()*self.zoom_factor,
+                               Qt.AspectRatioMode.KeepAspectRatio,
+                               Qt.TransformationMode.SmoothTransformation))
         self.label.setPixmap(target); self.label.resize(target.size()); self.update_status()
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -910,8 +935,11 @@ class PhotoViewer(QMainWindow):
         except Exception as exc:
             QMessageBox.warning(self,APP_NAME,f"Could not recycle image:\n{exc}")
     def clear_view(self):
-        self.current_pixmap=None; self.index=-1; self.label.clear()
-        self.label.setText("No images remain in this folder")
+        self.current_pixmap=None; self.index=-1
+        self.image_cache.clear(); self.idle_timer.stop()
+        self.label.clear(); self.label.setText("No images remain in this folder")
+        self.setWindowTitle(f"{APP_NAME} {VERSION}")
+        self.update_status()
     def show_info(self):
         if self.current_pixmap and self.files:
             p=self.files[self.index]
