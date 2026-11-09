@@ -1,0 +1,47 @@
+name: Publish Windows preview release (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type PUBLISH to release the unsigned Windows 2.9.0 preview"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish-preview:
+    if: ${{ inputs.confirmation == 'PUBLISH' }}
+    runs-on: windows-latest
+    steps:
+      - name: Check out the verified 2.9.0 baseline
+        uses: actions/checkout@v4
+        with:
+          ref: f04ae061e339bf0265b5ee6a35e69132138a4c2a
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+      - name: Build EXE and installer
+        shell: cmd
+        run: build_installer.bat /nopause
+      - name: Check installer output and compute SHA256
+        shell: pwsh
+        run: |
+          $path = 'installer/output/QuickPhotoViewer-Setup-2.9.0.exe'
+          if (-not (Test-Path $path)) { throw 'Windows installer was not produced' }
+          Get-FileHash $path -Algorithm SHA256 | Format-List
+      - name: Publish public GitHub prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = 'v2.9.0'
+          $asset = 'installer/output/QuickPhotoViewer-Setup-2.9.0.exe'
+          $notes = 'Windows 10/11 unsigned PREVIEW build. Bundled Python and PySide6; no Python installation is required. This is a pre-release and has not yet completed independent interactive Windows GUI and upgrade testing. Use at your own risk. Includes dark photo viewing, navigation, thumbnails, printing and optional Windows Open with registration; does not change your default image app without your approval.'
+          gh release create $tag $asset --target f04ae061e339bf0265b5ee6a35e69132138a4c2a --title "Quick Photo Viewer 2.9.0 - Windows Preview" --notes $notes --prerelease
