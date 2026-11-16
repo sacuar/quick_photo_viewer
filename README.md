@@ -63,6 +63,12 @@ The main viewer has **no editing or OCR plugins**, and does not import external 
 
 The **Check GitHub for updates** option compares published release versions; checking on startup is opt-in. Nothing is downloaded or installed automatically. Your photos remain local.
 
+### Contribute to Quick Photo Viewer
+
+**Developers, testers and UI designers are welcome.** Useful contributions include reproducible Windows bug reports, faster image loading, keyboard accessibility, installation testing, and genuine screenshots after manual verification.
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Keep changes isolated and preserve the stable 2.9 photo-viewing workflow. Editing and OCR experiments should remain separate from the viewer.
+
 ### Feedback
 
 Report bugs under [Issues](https://github.com/sacuar/quick_photo_viewer/issues). Please include your Windows version, steps to reproduce and any error message; do not upload private photos.
