@@ -17,7 +17,7 @@ on:
       - 'packaging/linux/**'
       - '.github/workflows/ubuntu-build.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   ubuntu:
     runs-on: ubuntu-24.04
@@ -56,6 +56,13 @@ jobs:
       - name: Create DEB and SHA-256
         run: |
           bash packaging/linux/build-deb.sh
+      - name: Publish Ubuntu package to existing versioned GitHub release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v2.9.6 >/dev/null
+          gh release upload v2.9.6 installer/linux/*.deb installer/linux/*.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: QuickPhotoViewer-Ubuntu-24.04-amd64
