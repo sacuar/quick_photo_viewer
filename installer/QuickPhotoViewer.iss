@@ -1,5 +1,5 @@
 #define MyAppName "Quick Photo Viewer Pro"
-#define MyAppVersion "2.9.2"
+#define MyAppVersion "2.9.3"
 #define MyAppPublisher "BANG Tools"
 #define MyAppExeName "QuickPhotoViewer.exe"
 #define MyAppRegisteredName "Quick Photo Viewer"
@@ -16,10 +16,10 @@ AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Quick Photo Viewer
 DefaultGroupName=Quick Photo Viewer
-UsePreviousAppDir=yes
+UsePreviousAppDir=no
 UsePreviousGroup=yes
 OutputDir=output
-OutputBaseFilename=QuickPhotoViewer-Setup-2.9.2
+OutputBaseFilename=QuickPhotoViewer-Setup-2.9.3
 SetupIconFile=..\icons\quick_photo_viewer.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
@@ -56,6 +56,8 @@ Name: "{autoprograms}\Quick Photo Viewer"; Filename: "{app}\{#MyAppExeName}"; Ic
 Name: "{autodesktop}\Quick Photo Viewer"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
+Root: HKLM; Subkey: "Software\BANGTools\QuickPhotoViewer"; ValueType: string; ValueName: "Executable"; ValueData: "{app}\QuickPhotoViewer.exe"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\BANGTools\QuickPhotoViewer"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"
 ; Register executable location without replacing Windows per-user UserChoice.
 Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\{#MyAppExeName}"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName}"; Flags: uninsdeletekey
 ; Open-with application registration (independent of choosing the default app).

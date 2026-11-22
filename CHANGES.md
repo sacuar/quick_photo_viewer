@@ -1,3 +1,6 @@
+# 2.9.3
+- Standard installation directory, dedicated Folder integration registration and installed-runtime startup test.
+
 # 2.9.2
 - Optional GitHub image conversion and resize plugin; Plugins menu restored.
 

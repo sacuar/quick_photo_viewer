@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (QApplication, QColorDialog, QCheckBox, QDialog, Q
     QMenu, QMessageBox, QScrollArea, QStatusBar, QStyle, QStyledItemDelegate, QToolBar,
     QToolButton, QWidget, QSizePolicy)
 
-APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.2"
+APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.3"
 APP_DIR = Path(__file__).resolve().parent
 ICON_DIR = APP_DIR / "icons"
 SUPPORTED = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",

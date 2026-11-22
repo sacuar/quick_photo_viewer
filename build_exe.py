@@ -23,6 +23,6 @@ subprocess.check_call(command, cwd=root)
 folder = output / "dist" / "QuickPhotoViewer"
 if not (folder / "QuickPhotoViewer.exe").is_file():
     raise RuntimeError("The compiled executable is missing.")
-if not any(folder.glob("python3*.dll")):
+if not (folder / f"python{sys.version_info.major}{sys.version_info.minor}.dll").is_file():
     raise RuntimeError("Python runtime DLL missing; installer build is blocked.")
 print("Build folder:", folder)
