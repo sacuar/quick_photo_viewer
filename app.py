@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (QApplication, QColorDialog, QCheckBox, QDialog, Q
     QMenu, QMessageBox, QScrollArea, QStatusBar, QStyle, QStyledItemDelegate, QToolBar,
     QToolButton, QWidget, QSizePolicy)
 
-APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.1"
+APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.2"
 APP_DIR = Path(__file__).resolve().parent
 ICON_DIR = APP_DIR / "icons"
 SUPPORTED = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",
@@ -328,6 +328,8 @@ class PhotoViewer(QMainWindow):
         settings.addAction(self.action("Check for updates on GitHub…", None,
                                        self.check_for_updates, "refresh"))
 
+        from plugin_catalog import Manager
+        self.plugin_manager=Manager(self)
         help_menu=mb.addMenu("Help"); help_menu.setIcon(make_icon("help"))
         help_menu.addAction(self.action("About",None,
             lambda: QMessageBox.information(self,"About",

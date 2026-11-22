@@ -1,4 +1,7 @@
-# 2.9.1
+# 2.9.2
+- Optional GitHub image conversion and resize plugin; Plugins menu restored.
+
+# 2.9.2
 
 - Restore blue icon artwork from the supplied icon image (regenerated multiresolution ICO).
 - Branded installer, optional maintenance scan, and automatic preview release publication after startup tests.

@@ -1,5 +1,5 @@
 #define MyAppName "Quick Photo Viewer Pro"
-#define MyAppVersion "2.9.1"
+#define MyAppVersion "2.9.2"
 #define MyAppPublisher "BANG Tools"
 #define MyAppExeName "QuickPhotoViewer.exe"
 #define MyAppRegisteredName "Quick Photo Viewer"
@@ -19,7 +19,7 @@ DefaultGroupName=Quick Photo Viewer
 UsePreviousAppDir=yes
 UsePreviousGroup=yes
 OutputDir=output
-OutputBaseFilename=QuickPhotoViewer-Setup-2.9.1
+OutputBaseFilename=QuickPhotoViewer-Setup-2.9.2
 SetupIconFile=..\icons\quick_photo_viewer.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
