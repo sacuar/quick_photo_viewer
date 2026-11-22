@@ -40,7 +40,7 @@ The current README contains a [workspace image](https://github.com/sacuar/quick_
 
 ### Photo viewing without distractions
 
-**Quick Photo Viewer 2.9** keeps the stable original black interface and removes the experimental editing/OCR plugins. It opens local images directly; there is no cloud upload or user account.
+**Quick Photo Viewer 2.9.6** keeps the stable original black interface and removes the experimental editing/OCR plugins. It opens local images directly; there is no cloud upload or user account.
 
 | Browsing | Focused view | Windows integration |
 |---|---|---|
@@ -78,7 +78,7 @@ py -3 -m pip install -r requirements.txt
 py app.py
 ```
 
-**Build the standalone EXE + installer:** Install [Inno Setup 6](https://jrsoftware.org/isdl.php) on the **build machine**, then run `build_installer.bat`. This builds a bundled Python/Qt app and generates `installer/output/QuickPhotoViewer-Setup-2.9.1.exe`. Users of that Setup EXE do **not** need Python.
+**Build the standalone EXE + installer:** Install [Inno Setup 6](https://jrsoftware.org/isdl.php) on the **build machine**, then run `build_installer.bat`. This builds a bundled Python/Qt app and generates `installer/output/QuickPhotoViewer-Setup-2.9.6.exe`. Users of that Setup EXE do **not** need Python.
 
 [Windows installation, upgrades and default-app registration](WINDOWS_INSTALL.md)
 
@@ -104,5 +104,9 @@ Report bugs under [Issues](https://github.com/sacuar/quick_photo_viewer/issues).
 
 Copyright © 2026 BANG Tools. All rights reserved until a source distribution licence is selected.
 
-### Installation reliability (2.9.5)
+### Installation reliability (2.9.5 and 2.9.6)
 Setup only installs and registers files; it no longer launches the viewer, maintenance tool or Windows Settings. After Setup closes, open Quick Photo Viewer or QuickPhotoViewer maintenance from Start. Choose file defaults through Windows Settings manually. The release workflow tests installed JPEG opening and uninstall cleanup.
+
+### Current release and updater verification
+
+The published Windows release is **2.9.6**. It has a consent-based SHA-256-verified installer download for registered Windows installations. The previous 2.9.5 build only opened the official release page: install 2.9.6 once manually to acquire the new update mechanism. [Release 2.9.6](https://github.com/sacuar/quick_photo_viewer/releases/tag/v2.9.6). CI now includes a regression workflow for an actual 2.9.5 → 2.9.6 Windows installer upgrade; check [Actions](https://github.com/sacuar/quick_photo_viewer/actions/workflows/windows-build.yml) for its result before relying on it as verified.
