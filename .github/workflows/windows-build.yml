@@ -79,6 +79,11 @@ jobs:
           python capture_screenshot.py
           if($LASTEXITCODE -ne 0 -or !(Test-Path workspace.png)){throw 'Screenshot failed'}
           "$((Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower())  $($exe.Name)" | Set-Content -Encoding ascii "$($exe.FullName).sha256"
+      - name: Verify upgrade from 2.9.5 and clean uninstall
+        shell: pwsh
+        timeout-minutes: 8
+        run: |
+          ./tools/test_upgrade.ps1 -CurrentInstaller "installer/output/QuickPhotoViewer-Setup-2.9.6.exe"
       - uses: actions/upload-artifact@v4
         with:
           name: QuickPhotoViewer-Windows
