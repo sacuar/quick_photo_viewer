@@ -1,17 +1,42 @@
 <div align="center">
-  <img src="icons/quick_photo_viewer.png" alt="Quick Photo Viewer original blue artwork" width="104" height="104">
-  <h1>Quick Photo Viewer</h1>
-  <p><strong>A clean, fast photo viewer for Windows 10 and 11.</strong></p>
-  <p>Browse folders, use thumbnails, zoom, rotate, enter distraction-free viewing and print — without an editing suite getting in the way.</p>
-  <p>
-    <img alt="Platform Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-1570c7">
-    <img alt="Version 2.9" src="https://img.shields.io/badge/version-2.9.1-197ea8">
-    <img alt="Status pre-release" src="https://img.shields.io/badge/status-pre--release-777777">
-    <img alt="Standalone" src="https://img.shields.io/badge/installer-Inno%20Setup-197ea8">
-  </p>
+
+![Quick Photo Viewer banner](assets/brand-cover.svg)
+
+# Quick Photo Viewer
+
+**A focused Windows photo viewer for browsing local images without distractions.**
+
+[![Windows](https://img.shields.io/badge/platform-Windows%2010%2F11-2563eb)](https://github.com/sacuar/quick_photo_viewer#install--try) [![Latest release](https://img.shields.io/github/v/release/sacuar/quick_photo_viewer?label=latest%20release)](https://github.com/sacuar/quick_photo_viewer/releases/latest) [![Issues](https://img.shields.io/github/issues/sacuar/quick_photo_viewer)](https://github.com/sacuar/quick_photo_viewer/issues)
+
+**[DOWNLOAD / RELEASES](https://github.com/sacuar/quick_photo_viewer/releases)** · **[VIEW SOURCE](https://github.com/sacuar/quick_photo_viewer)** · [More SACUAR apps](https://github.com/sacuar)
+
 </div>
 
+## Why use Quick Photo Viewer?
+
+- Navigate photo folders with thumbnails, keyboard shortcuts and mouse controls.
+- Zoom, rotate, print, or switch to a distraction-free fullscreen view.
+- Photos stay on your computer; no account or cloud upload is required.
+
+## Install / try
+
+Open **[GitHub Releases](https://github.com/sacuar/quick_photo_viewer/releases)**, choose the latest suitable Windows asset, review its release notes and known limitations, and follow the installer instructions. If no verified installer is available, use the documented source-build instructions below. Download only from the official project release page.
+
+**Release note:** The 2.9-series documentation includes maintenance updates, but you should verify the installed version and Windows update flow against the latest release before relying on automatic upgrades.
+
+**Licence:** Source is publicly viewable, but no redistributable open-source licence has been selected. Please check the repository's licence status before reusing source.
+
+## Screenshots and first look
+
+The current README contains a [workspace image](https://github.com/sacuar/quick_photo_viewer/releases/latest/download/workspace.png) from release assets where published. The banner above is branding artwork, not an actual application screenshot.
+
+## Get involved
+
+[Installation guide](WINDOWS_INSTALL.md) · [Contribute](CONTRIBUTING.md) · [Report a bug](https://github.com/sacuar/quick_photo_viewer/issues/new). Please report your Windows version, application version and steps to reproduce. Screenshots of reproducible issues help.
+
 ---
+
+## Detailed documentation
 
 ### Photo viewing without distractions
 
