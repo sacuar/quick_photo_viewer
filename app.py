@@ -150,7 +150,7 @@ class PhotoViewer(QMainWindow):
         super().__init__()
         self.resize(1280,820); self.setMinimumSize(720,480)
         self.setWindowTitle(f"{APP_NAME} {VERSION}")
-        self.setWindowIcon(QIcon(str(ICON_DIR / "quick_photo_viewer.ico")))
+        self.setWindowIcon(QIcon(str(ICON_DIR / ("quick_photo_viewer.ico" if sys.platform=="win32" else "quick_photo_viewer.png"))))
         self.setAcceptDrops(True); self.setMouseTracking(True)
         self.files=[]; self.index=-1; self.current_pixmap=None
         self.rotation=0; self.zoom_factor=1.0; self.fit_mode=True; self.photo_only=False
@@ -891,6 +891,17 @@ class PhotoViewer(QMainWindow):
         if self._update_worker is not None:
             if not silent:self.statusBar().showMessage("Already checking or downloading an update…",3000)
             return
+        if sys.platform != "win32":
+            # Windows .exe updates cannot be installed on Ubuntu.
+            # Linux users should upgrade using their distribution package.
+            if not silent:
+                from PySide6.QtGui import QDesktopServices
+                from PySide6.QtCore import QUrl
+                if QMessageBox.question(self,"Ubuntu updates",
+                    "Ubuntu builds are updated from the GitHub Releases page. Open releases now?"
+                ) == QMessageBox.StandardButton.Yes:
+                    QDesktopServices.openUrl(QUrl("https://github.com/sacuar/quick_photo_viewer/releases"))
+            return
         worker=UpdateChecker(VERSION,self);self._update_worker=worker
         worker.finished.connect(lambda:self._update_checked(worker,silent))
         worker.start()
@@ -956,13 +967,10 @@ class PhotoViewer(QMainWindow):
             QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No)!=QMessageBox.StandardButton.Yes:
             return
         try:
-            escaped=str(path).replace("'","''")
-            cmd=("Add-Type -AssemblyName Microsoft.VisualBasic; "
-                 "[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("
-                 f"'{escaped}','OnlyErrorDialogs','SendToRecycleBin')")
-            result=subprocess.run(["powershell","-NoProfile","-Command",cmd],
-                                  capture_output=True,text=True)
-            if result.returncode: raise RuntimeError(result.stderr.strip())
+            # Native freedesktop Trash on Linux, Recycle Bin on Windows.
+            # send2trash never permanently deletes a user image.
+            from send2trash import send2trash
+            send2trash(str(path))
             self.files.pop(self.index); self.index=min(self.index,len(self.files)-1)
             self.begin_thumbnails()
             self.load_current() if self.files else self.clear_view()
@@ -1021,7 +1029,7 @@ class PhotoViewer(QMainWindow):
 def main():
     app=QApplication(sys.argv); app.setApplicationName(APP_NAME); app.setOrganizationName("BANG Tools")
     app.setStyle("Fusion"); app.setStyleSheet(STYLE)
-    app.setWindowIcon(QIcon(str(ICON_DIR / "quick_photo_viewer.ico")))
+    app.setWindowIcon(QIcon(str(ICON_DIR / ("quick_photo_viewer.ico" if sys.platform=="win32" else "quick_photo_viewer.png"))))
     window=PhotoViewer(); window.show()
     smoke="--smoke-test" in sys.argv
     if smoke: QTimer.singleShot(1000,app.quit)
