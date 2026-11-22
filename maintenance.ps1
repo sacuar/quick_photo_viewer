@@ -1,4 +1,4 @@
-param([ValidateSet('QuickPhotoViewer','Lumen','CaptureForge','All')][string]$App='All',[string]$ProtectPath='')
+param([ValidateSet('QuickPhotoViewer','Lumen','CaptureForge','All')][string]$App='All',[string]$ProtectPath='',[switch]$SelfTest)
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName Microsoft.VisualBasic
@@ -26,10 +26,14 @@ function Inventory {
  foreach($h in @('HKCU','HKLM')){
   $run="$($h):\Software\Microsoft\Windows\CurrentVersion\Run";$key=Get-Item $run -ErrorAction SilentlyContinue
   if($key){foreach($n in $key.GetValueNames()){if($n -match $regex){Row 'Startup registry' "$n = $($key.GetValue($n))" "$run|$n"}}}
-  foreach($a in @('QuickPhotoViewer','Lumen','CaptureForge')){
+  foreach($a in @('QuickPhotoViewer','Quick_Photo_Viewer_Pro','Lumen','CaptureForge')){
    if($a -notmatch $regex){continue}
    foreach($p in @("$($h):\Software\Microsoft\Windows\CurrentVersion\App Paths\$a.exe","$($h):\Software\Classes\Applications\$a.exe")){
-    if(Test-Path -LiteralPath $p){Row 'App registry' $a $p}
+    if(Test-Path -LiteralPath $p){
+     $target=$null;$command=Join-Path $p 'shell\open\command'
+     if(Test-Path -LiteralPath $command){$target=(Get-Item -LiteralPath $command).GetValue('')}else{$target=(Get-Item -LiteralPath $p).GetValue('')}
+     Row 'App registry' "$a : $target" $p
+    }
    }
   }
  }
@@ -38,7 +42,13 @@ function Inventory {
 $worker={
  param([string]$rootsJson,[string]$regex)
  $stack=New-Object 'System.Collections.Generic.Stack[string]'
- foreach($root in @(ConvertFrom-Json $rootsJson)){if($root -and [IO.Directory]::Exists($root)){$stack.Push($root)}}
+ $ErrorActionPreference='Stop'
+ $decoded=ConvertFrom-Json -InputObject $rootsJson
+ foreach($root in $decoded){
+  $path=[string]$root
+  if($path -and [IO.Directory]::Exists($path)){$stack.Push($path)}
+ }
+ if(!$stack.Count){throw 'No accessible scan roots were supplied.'}
  $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
  $deadline=[datetime]::UtcNow.AddMinutes(4);$visited=0
  while($stack.Count -gt 0 -and $visited -lt 500000 -and [datetime]::UtcNow -lt $deadline){
@@ -59,12 +69,33 @@ $worker={
  }
  [pscustomobject]@{Kind='Scan summary';Name="$visited folders checked";Path=$(if($stack.Count){'Search limit reached; select a narrower folder'}else{'Accessible folders completed'})}
 }
+if($SelfTest){
+ $root=Join-Path ([IO.Path]::GetTempPath()) ('QPVScan-'+[guid]::NewGuid())
+ try{
+  [void][IO.Directory]::CreateDirectory($root)
+  $child=Join-Path $root 'Quick_Photo_Viewer_Pro_3.0_Upgrade'
+  [void][IO.Directory]::CreateDirectory($child)
+  [IO.File]::WriteAllText((Join-Path $child 'QuickPhotoViewer.exe'),'test')
+  $json=ConvertTo-Json -InputObject @($root,$child) -Compress
+  $job=Start-Job -ScriptBlock $worker -ArgumentList ([string]$json),([string]$regex)
+  try {
+   if(!(Wait-Job $job -Timeout 30)){throw 'Maintenance scan timeout'}
+   $results=@(Receive-Job $job -ErrorAction Stop)
+   if(!($results|Where-Object{$_.Kind -eq 'Build / installer' -and $_.Name -eq 'QuickPhotoViewer.exe'})){throw 'No synthetic build found'}
+   if(!($results|Where-Object{$_.Kind -eq 'Scan summary' -and $_.Name -match '^[1-9]'})){throw 'Zero folders scanned'}
+  }finally{Remove-Job $job -Force -ErrorAction SilentlyContinue}
+ }finally{Remove-Item -LiteralPath $root -Recurse -Force}
+ Write-Output 'Maintenance background scan test passed'
+ exit 0
+}
 function Scan($roots){
  if($script:job -and $script:job.State -eq 'Running'){return}
  if($script:job){Remove-Job $script:job -Force -ErrorAction SilentlyContinue}
  $grid.Rows.Clear();$script:seen=@{};Inventory
- $json=ConvertTo-Json -InputObject @($roots) -Compress
- $script:job=Start-Job -ScriptBlock $worker -ArgumentList $json,$regex
+ $valid=@($roots | ForEach-Object { [string]$_ } | Where-Object { $_ -and [IO.Directory]::Exists($_) })
+ if(!$valid.Count){$status.Text='No accessible scan folders. Choose Scan folder.';return}
+ $json=ConvertTo-Json -InputObject $valid -Compress
+ $script:job=Start-Job -ScriptBlock $worker -ArgumentList ([string]$json),([string]$regex)
  $status.Text='Scanning in background. No changes are being made.'
 }
 Button 'Quick scan' {Scan @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('MyDocuments'),(Join-Path $env:USERPROFILE 'Downloads'),(Join-Path $env:LOCALAPPDATA 'Programs'),$env:ProgramFiles,[Environment]::GetEnvironmentVariable('ProgramFiles(x86)'),(Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Startup'))}
@@ -121,7 +152,13 @@ $timer.Add_Tick({
   $id="$($r.Kind)|$($r.Path)"
   if(!$script:seen.ContainsKey($id)){Row $r.Kind $r.Name $r.Path;$script:seen[$id]=$true}
  }
- if($script:job.State -notin @('Running','NotStarted')){$status.Text="Scan $($script:job.State). $($grid.Rows.Count) entries; review before removal.";Remove-Job $script:job -Force -ErrorAction SilentlyContinue;$script:job=$null}
+ if($script:job.State -notin @('Running','NotStarted')){
+  if($script:job.State -eq 'Failed'){
+   $reason=$script:job.ChildJobs[0].JobStateInfo.Reason
+   $status.Text="Scan failed: $reason"
+  }else{$status.Text="Scan $($script:job.State). $($grid.Rows.Count) entries; review before removal."}
+  Remove-Job $script:job -Force -ErrorAction SilentlyContinue;$script:job=$null
+ }
 })
 $timer.Start()
 $form.Add_FormClosed({$timer.Stop();if($script:job){Stop-Job $script:job -ErrorAction SilentlyContinue;Remove-Job $script:job -Force -ErrorAction SilentlyContinue}})

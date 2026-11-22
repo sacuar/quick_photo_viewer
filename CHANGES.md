@@ -1,4 +1,7 @@
-# 2.9.3
+# 2.9.4
+- Fix scan root handling and report background job errors. Test actual background scan with synthetic old builds. Display registry target commands.
+
+# 2.9.4
 - Standard installation directory, dedicated Folder integration registration and installed-runtime startup test.
 
 # 2.9.2

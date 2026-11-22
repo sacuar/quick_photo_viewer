@@ -31,13 +31,21 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -c "import sys, PySide6, PIL; print(sys.executable); print(PySide6.__version__)"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test actual maintenance background job
+        shell: powershell
+        run: |
+          $tokens=$null; $errors=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path maintenance.ps1).Path,[ref]$tokens,[ref]$errors)
+          if($errors.Count){$errors | Format-List; throw 'Invalid maintenance script'}
+          powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File maintenance.ps1 -App QuickPhotoViewer -SelfTest
+          if($LASTEXITCODE -ne 0){throw 'Maintenance scan failed'}
       - run: choco install innosetup --no-progress -y
       - shell: cmd
         run: build_installer.bat /nopause
       - name: Test packaged viewer and capture workspace
         shell: pwsh
         run: |
-          $exe=Get-Item 'installer/output/QuickPhotoViewer-Setup-2.9.3.exe'
+          $exe=Get-Item 'installer/output/QuickPhotoViewer-Setup-2.9.4.exe'
           $dist="$env:USERPROFILE/Documents/QuickPhotoViewerBuild/dist/QuickPhotoViewer"
           $p=Start-Process "$dist/QuickPhotoViewer.exe" -ArgumentList '--smoke-test' -PassThru
           if(!$p.WaitForExit(30000)){$p.Kill();throw 'Startup timeout'}
@@ -65,7 +73,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v2.9.3 *> $null
+          gh release view v2.9.4 *> $null
           if($LASTEXITCODE -eq 0){exit 0}
-          gh release create v2.9.3 installer/output/QuickPhotoViewer-Setup-2.9.3.exe installer/output/QuickPhotoViewer-Setup-2.9.3.exe.sha256 workspace.png --target $env:GITHUB_SHA --title 'Quick Photo Viewer 2.9.3 - Windows Preview' --notes-file CHANGES.md
+          gh release create v2.9.4 installer/output/QuickPhotoViewer-Setup-2.9.4.exe installer/output/QuickPhotoViewer-Setup-2.9.4.exe.sha256 workspace.png --target $env:GITHUB_SHA --title 'Quick Photo Viewer 2.9.4 - Windows Preview' --notes-file CHANGES.md
           if($LASTEXITCODE -ne 0){throw 'Publishing failed'}
