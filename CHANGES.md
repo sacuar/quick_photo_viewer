@@ -1,3 +1,9 @@
+# 2.9.1
+
+- Restore blue icon artwork from the supplied icon image (regenerated multiresolution ICO).
+- Branded installer, optional maintenance scan, and automatic preview release publication after startup tests.
+- Existing stable viewer functionality retained.
+
 # Changes from stable 2.8.1
 
 - Only these view methods changed: `__init__`, `build_menus`, `build_toolbar`, `toggle_immersive`, `_apply_normal_visibility`, `eventFilter`, `begin_thumbnails`, `load_thumbnail_batch`, `load_current`, `resizeEvent`, `toggle_fullscreen`, `toggle_photo_only`, `closeEvent`, `keyPressEvent`.

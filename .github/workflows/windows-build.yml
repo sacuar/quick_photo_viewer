@@ -1,43 +1,50 @@
-name: Windows installer - verification build
-
+name: Windows installer and release
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - "app.py"
-      - "update_check.py"
-      - "icons/**"
-      - "build_exe.py"
-      - "build_exe.bat"
-      - "build_installer.bat"
-      - "installer/**"
-      - "requirements*.txt"
-      - ".github/workflows/windows-build.yml"
-
+      - app.py
+      - build_brand.py
+      - '.github/workflows/windows-build.yml'
 permissions:
-  contents: read
-
+  contents: write
 jobs:
-  package-windows:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
-      - name: Install Inno Setup
-        shell: pwsh
-        run: choco install innosetup --no-progress -y
-      - name: Build EXE and installer
-        shell: cmd
+          python-version: '3.13'
+      - run: choco install innosetup --no-progress -y
+      - shell: cmd
         run: build_installer.bat /nopause
-      - name: Check installer exists
+      - name: Test packaged viewer and capture workspace
         shell: pwsh
         run: |
-          if (-not (Test-Path 'installer/output/QuickPhotoViewer-Setup-2.9.0.exe')) { throw 'Installer missing' }
+          $exe=Get-Item 'installer/output/QuickPhotoViewer-Setup-2.9.1.exe'
+          $dist="$env:USERPROFILE/Documents/QuickPhotoViewerBuild/dist/QuickPhotoViewer"
+          $p=Start-Process "$dist/QuickPhotoViewer.exe" -ArgumentList '--smoke-test' -PassThru
+          if(!$p.WaitForExit(30000)){$p.Kill();throw 'Startup timeout'}
+          if($p.ExitCode -ne 0){throw 'Startup failed'}
+          $env:QT_QPA_PLATFORM='offscreen'
+          python capture_screenshot.py
+          if($LASTEXITCODE -ne 0 -or !(Test-Path workspace.png)){throw 'Screenshot failed'}
+          "$((Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower())  $($exe.Name)" | Set-Content -Encoding ascii "$($exe.FullName).sha256"
       - uses: actions/upload-artifact@v4
         with:
-          name: QuickPhotoViewer-Windows-Unsigned-TestBuild
-          path: installer/output/QuickPhotoViewer-Setup-2.9.0.exe
-          if-no-files-found: error
+          name: QuickPhotoViewer-Windows
+          path: |
+            installer/output/*.exe
+            installer/output/*.sha256
+            workspace.png
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v2.9.1 *> $null
+          if($LASTEXITCODE -eq 0){exit 0}
+          gh release create v2.9.1 installer/output/QuickPhotoViewer-Setup-2.9.1.exe installer/output/QuickPhotoViewer-Setup-2.9.1.exe.sha256 workspace.png --target $env:GITHUB_SHA --title 'Quick Photo Viewer 2.9.1 - Windows Preview' --notes-file CHANGES.md
+          if($LASTEXITCODE -ne 0){throw 'Publishing failed'}

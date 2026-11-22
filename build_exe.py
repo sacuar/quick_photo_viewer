@@ -8,6 +8,7 @@ output = Path.home() / "Documents" / "QuickPhotoViewerBuild"
 for name in ("spec", "build", "dist"):
     (output / name).mkdir(parents=True, exist_ok=True)
 
+subprocess.check_call([sys.executable, str(root / 'build_brand.py')], cwd=root)
 command = [
     sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean",
     "--windowed", "--onedir", "--contents-directory", ".",

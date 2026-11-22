@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (QApplication, QColorDialog, QCheckBox, QDialog, Q
     QMenu, QMessageBox, QScrollArea, QStatusBar, QStyle, QStyledItemDelegate, QToolBar,
     QToolButton, QWidget, QSizePolicy)
 
-APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.0"
+APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.1"
 APP_DIR = Path(__file__).resolve().parent
 ICON_DIR = APP_DIR / "icons"
 SUPPORTED = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",
@@ -985,7 +985,9 @@ class PhotoViewer(QMainWindow):
 def main():
     app=QApplication(sys.argv); app.setApplicationName(APP_NAME); app.setOrganizationName("BANG Tools")
     app.setStyle("Fusion"); app.setStyleSheet(STYLE)
+    app.setWindowIcon(QIcon(str(ICON_DIR / "quick_photo_viewer.ico")))
     window=PhotoViewer(); window.show()
+    if "--smoke-test" in sys.argv: QTimer.singleShot(1000,app.quit)
     if len(sys.argv)>1:
         path=Path(sys.argv[1])
         if path.is_file() and path.suffix.lower() in SUPPORTED:

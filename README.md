@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="icons/quick_photo_viewer.png" alt="Quick Photo Viewer red-orange landscape icon" width="104" height="104">
+  <img src="icons/quick_photo_viewer.png" alt="Quick Photo Viewer original blue artwork" width="104" height="104">
   <h1>Quick Photo Viewer</h1>
   <p><strong>A clean, fast photo viewer for Windows 10 and 11.</strong></p>
   <p>Browse folders, use thumbnails, zoom, rotate, enter distraction-free viewing and print — without an editing suite getting in the way.</p>
   <p>
     <img alt="Platform Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-1570c7">
-    <img alt="Version 2.9" src="https://img.shields.io/badge/version-2.9.0-e45737">
+    <img alt="Version 2.9" src="https://img.shields.io/badge/version-2.9.1-197ea8">
     <img alt="Status pre-release" src="https://img.shields.io/badge/status-pre--release-777777">
-    <img alt="Standalone" src="https://img.shields.io/badge/installer-Inno%20Setup-c74432">
+    <img alt="Standalone" src="https://img.shields.io/badge/installer-Inno%20Setup-197ea8">
   </p>
 </div>
 
@@ -26,7 +26,9 @@
 
 ### Screen captures
 
-Real Windows 11 screenshots will be added after the installer and UI pass the manual smoke test. **No mock screenshots are presented as tested application captures.**
+![Application workspace](https://github.com/sacuar/quick_photo_viewer/releases/latest/download/workspace.png)
+
+Actual application capture with synthetic demo images, generated during the Windows build.
 
 ### Keyboard shortcuts
 
@@ -42,7 +44,7 @@ Real Windows 11 screenshots will be added after the installer and UI pass the ma
 
 ### Install or build
 
-**Windows installer:** A signed, verified release is **not published yet**. Once Windows testing passes, the installer will appear on [Releases](https://github.com/sacuar/quick_photo_viewer/releases).
+**Windows installer:** Unsigned preview installers appear on [Releases](https://github.com/sacuar/quick_photo_viewer/releases).
 
 **Source on Windows:**
 
@@ -51,7 +53,7 @@ py -3 -m pip install -r requirements.txt
 py app.py
 ```
 
-**Build the standalone EXE + installer:** Install [Inno Setup 6](https://jrsoftware.org/isdl.php) on the **build machine**, then run `build_installer.bat`. This builds a bundled Python/Qt app and generates `installer/output/QuickPhotoViewer-Setup-2.9.0.exe`. Users of that Setup EXE do **not** need Python.
+**Build the standalone EXE + installer:** Install [Inno Setup 6](https://jrsoftware.org/isdl.php) on the **build machine**, then run `build_installer.bat`. This builds a bundled Python/Qt app and generates `installer/output/QuickPhotoViewer-Setup-2.9.1.exe`. Users of that Setup EXE do **not** need Python.
 
 [Windows installation, upgrades and default-app registration](WINDOWS_INSTALL.md)
 

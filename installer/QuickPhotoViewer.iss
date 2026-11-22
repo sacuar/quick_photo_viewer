@@ -1,5 +1,5 @@
 #define MyAppName "Quick Photo Viewer Pro"
-#define MyAppVersion "2.9.0"
+#define MyAppVersion "2.9.1"
 #define MyAppPublisher "BANG Tools"
 #define MyAppExeName "QuickPhotoViewer.exe"
 #define MyAppRegisteredName "Quick Photo Viewer"
@@ -19,12 +19,14 @@ DefaultGroupName=Quick Photo Viewer
 UsePreviousAppDir=yes
 UsePreviousGroup=yes
 OutputDir=output
-OutputBaseFilename=QuickPhotoViewer-Setup-2.9.0
+OutputBaseFilename=QuickPhotoViewer-Setup-2.9.1
 SetupIconFile=..\icons\quick_photo_viewer.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+WizardImageFile=..\icons\wizard.bmp
+WizardSmallImageFile=..\icons\wizard-small.bmp
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=admin
@@ -98,7 +100,7 @@ procedure OpenMaintenance(Sender: TObject);
 var ResultCode: Integer;
 begin
   ExtractTemporaryFile('Setup-Maintenance.ps1');
-  if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{tmp}\Setup-Maintenance.ps1') + '" -App QuickPhotoViewer -ProtectPath "' + WizardDirValue + '"', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
+  if not ExecAsOriginalUser(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{tmp}\Setup-Maintenance.ps1') + '" -App QuickPhotoViewer -ProtectPath "' + WizardDirValue + '"', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
     MsgBox('Maintenance tool could not be opened.', mbError, MB_OK);
 end;
 procedure InitializeWizard;
