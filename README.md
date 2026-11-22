@@ -18,6 +18,10 @@
 - Zoom, rotate, print, or switch to a distraction-free fullscreen view.
 - Photos stay on your computer; no account or cloud upload is required.
 
+## Ubuntu build
+
+**Ubuntu 24.04 x64 (preview):** A native Qt/PySide6 build and installable `.deb` are available through the Ubuntu CI pipeline. Windows updates do not run on Linux. Linux file deletion uses the desktop Trash. [Ubuntu setup and limitations](packaging/linux/README.md) · [Ubuntu workflow](https://github.com/sacuar/quick_photo_viewer/actions/workflows/ubuntu-build.yml).
+
 ## Install / try
 
 Open **[GitHub Releases](https://github.com/sacuar/quick_photo_viewer/releases)**, choose the latest suitable Windows asset, review its release notes and known limitations, and follow the installer instructions. If no verified installer is available, use the documented source-build instructions below. Download only from the official project release page.
