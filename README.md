@@ -32,7 +32,13 @@ Open **[GitHub Releases](https://github.com/sacuar/quick_photo_viewer/releases)*
 
 ## Screenshots and first look
 
-The current README contains a [workspace image](https://github.com/sacuar/quick_photo_viewer/releases/latest/download/workspace.png) from release assets where published. The banner above is branding artwork, not an actual application screenshot.
+### See your photos, not the clutter
+
+![Actual Quick Photo Viewer application showing a local image and photo-browsing controls](https://github.com/sacuar/quick_photo_viewer/releases/download/v2.9.6/workspace.png)
+
+*Real application screen capture with synthetic demo imagery, created during the Windows build. No marketing concept rendering is substituted for the application interface.*
+
+**Open local photos instantly, navigate with the arrow keys, zoom in, and switch to a distraction-free fullscreen or photo-only view.** The Ubuntu build preserves the main viewing workflow.
 
 ## Get involved
 
