@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (QApplication, QColorDialog, QCheckBox, QDialog, Q
     QMenu, QMessageBox, QScrollArea, QStatusBar, QStyle, QStyledItemDelegate, QToolBar,
     QToolButton, QWidget, QSizePolicy)
 
-APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.5"
+APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.6"
 APP_DIR = Path(__file__).resolve().parent
 ICON_DIR = APP_DIR / "icons"
 SUPPORTED = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",
@@ -173,7 +173,7 @@ class PhotoViewer(QMainWindow):
         # ---- auto photo-only: five seconds after last UI activity ----
         self.idle_seconds = max(2, min(60, int(self.settings.value("photo_idle_seconds", 5))))
         self.auto_photo_only = self.settings.value("auto_photo_only", True, type=bool)
-        self.check_updates_on_start = self.settings.value("check_updates_on_start", False, type=bool)
+        self.check_updates_on_start = self.settings.value("check_updates_on_start", True, type=bool)
         self.idle_timer = QTimer(self)
         self.idle_timer.setSingleShot(True)
         self.idle_timer.timeout.connect(self._enter_photo_only_if_idle)
@@ -222,7 +222,7 @@ class PhotoViewer(QMainWindow):
         self.update_status()
         self.nav_hide_timer.start()
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        if self.check_updates_on_start:
+        if self.check_updates_on_start and "--smoke-test" not in sys.argv:
             QTimer.singleShot(2500, lambda: self.check_for_updates(silent=True))
 
     # ================================================== frame color
@@ -888,30 +888,62 @@ class PhotoViewer(QMainWindow):
 
     def check_for_updates(self, silent=False):
         from update_check import UpdateChecker
-        if self._update_worker is not None and self._update_worker.isRunning():
-            if not silent:
-                self.statusBar().showMessage("  Already checking GitHub…", 2000)
+        if self._update_worker is not None:
+            if not silent:self.statusBar().showMessage("Already checking or downloading an update…",3000)
             return
-        worker = UpdateChecker(VERSION, self)
-        self._update_worker = worker
-        worker.checked.connect(lambda kind, message, url: self._on_update_result(
-            kind, message, url, silent))
-        worker.finished.connect(lambda: setattr(self, "_update_worker", None))
-        worker.finished.connect(worker.deleteLater)
+        worker=UpdateChecker(VERSION,self);self._update_worker=worker
+        worker.finished.connect(lambda:self._update_checked(worker,silent))
         worker.start()
 
-    def _on_update_result(self, kind, message, url, silent):
-        if kind == "update":
-            question = QMessageBox.question(self, "New release on GitHub",
-                message + "\n\nOpen the release page?\n"
-                "Updates are never installed without your approval.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-            if question == QMessageBox.StandardButton.Yes:
-                from PySide6.QtGui import QDesktopServices
-                from PySide6.QtCore import QUrl
-                QDesktopServices.openUrl(QUrl(url))
-        elif not silent:
-            QMessageBox.information(self, "GitHub update check", message)
+    def _update_checked(self,worker,silent):
+        from update_check import RELEASES,installed_directory,InstallerDownload
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+        from PySide6.QtWidgets import QProgressDialog
+        info,error=worker.info,worker.error
+        self._update_worker=None;worker.deleteLater()
+        if error:
+            if not silent:QMessageBox.warning(self,"GitHub update check",error)
+            return
+        if not info:
+            if not silent:QMessageBox.information(self,"GitHub update check",f"Quick Photo Viewer {VERSION} is up to date.")
+            return
+        directory=installed_directory(VERSION)
+        if directory is None:
+            if QMessageBox.question(self,"New public release",f"Version {info['version']} is available. This copy is not a registered public installation. Open official downloads instead?")==QMessageBox.StandardButton.Yes:
+                QDesktopServices.openUrl(QUrl(RELEASES))
+            return
+        if QMessageBox.question(self,"Update Quick Photo Viewer",f"Update {VERSION} → {info['version']}?\n\nDownload the official installer ({info['size']/1048576:.1f} MB), verify SHA-256 and start Windows Setup. Your pictures and preferences are unchanged.")!=QMessageBox.StandardButton.Yes:return
+        job=InstallerDownload(info,self);self._update_worker=job
+        progress=QProgressDialog("Downloading verified GitHub installer…","Cancel",0,100,self)
+        progress.setWindowTitle("Quick Photo Viewer update");progress.setWindowModality(Qt.WindowModality.WindowModal)
+        progress.setAutoClose(False);progress.setAutoReset(False);progress.setMinimumDuration(0)
+        job.progress.connect(progress.setValue);progress.canceled.connect(job.requestInterruption)
+        job.finished.connect(lambda:self._update_downloaded(job,progress,directory))
+        progress.show();job.start()
+
+    def _update_downloaded(self,job,progress,directory):
+        from update_check import launch_installer,installed_directory
+        import shutil
+        self._update_worker=None;progress.close();progress.deleteLater()
+        path,error,cancelled=job.path,job.error,job.isInterruptionRequested()
+        job.deleteLater()
+        if cancelled:
+            if path:shutil.rmtree(path.parent,ignore_errors=True)
+            return
+        if error:
+            QMessageBox.warning(self,"Update download failed",error);return
+        if not path:return
+        if installed_directory(VERSION)!=directory:
+            shutil.rmtree(path.parent,ignore_errors=True)
+            QMessageBox.warning(self,"Update stopped","Installation registration changed. Use the official release page.");return
+        try:
+            launch_installer(path,directory)
+        except Exception as exc:
+            shutil.rmtree(path.parent,ignore_errors=True)
+            QMessageBox.warning(self,"Update not installed",str(exc));return
+        # Setup owns the verified installer now. Do not delete it while it is running.
+        self.close()
 
     # ================================================== misc
     def toggle_slideshow(self):
@@ -972,9 +1004,11 @@ class PhotoViewer(QMainWindow):
         image=next((p for p in paths if p.is_file() and p.suffix.lower() in SUPPORTED),None)
         if image: self.load_directory(image.parent,image)
     def closeEvent(self,event):
+        if self._update_worker is not None:
+            event.ignore()
+            self.statusBar().showMessage("Finish or cancel the update first.",3000)
+            return
         self.idle_timer.stop()
-        if self._update_worker is not None and self._update_worker.isRunning():
-            self._update_worker.wait(6000)
         if self.photo_only and self._before_photo_geometry is not None:
             self.settings.setValue("geometry", self._before_photo_geometry)
         else:
