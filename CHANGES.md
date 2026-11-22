@@ -1,3 +1,7 @@
+# 2.9.5
+- Remove process launching and optional cleanup page from elevated Setup. Maintenance remains available from Start menu after installation.
+- Test installed executable with a real JPEG path containing spaces; verify uninstall and integration registry removal in CI.
+
 # 2.9.4
 - Fix scan root handling and report background job errors. Test actual background scan with synthetic old builds. Display registry target commands.
 

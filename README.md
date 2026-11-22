@@ -78,3 +78,6 @@ Report bugs under [Issues](https://github.com/sacuar/quick_photo_viewer/issues).
 > **Release status:** Source and build scripts can be reviewed, but the Windows build and installer have not been run end-to-end in this environment. GitHub Actions artifacts are unsigned test builds, not approved public releases.
 
 Copyright © 2026 BANG Tools. All rights reserved until a source distribution licence is selected.
+
+### Installation reliability (2.9.5)
+Setup only installs and registers files; it no longer launches the viewer, maintenance tool or Windows Settings. After Setup closes, open Quick Photo Viewer or QuickPhotoViewer maintenance from Start. Choose file defaults through Windows Settings manually. The release workflow tests installed JPEG opening and uninstall cleanup.

@@ -6,6 +6,7 @@ on:
     paths:
       - app.py
       - plugin_catalog.py
+      - maintenance.ps1
       - build_exe.py
       - installer/**
       - build_exe.bat
@@ -45,7 +46,7 @@ jobs:
       - name: Test packaged viewer and capture workspace
         shell: pwsh
         run: |
-          $exe=Get-Item 'installer/output/QuickPhotoViewer-Setup-2.9.4.exe'
+          $exe=Get-Item 'installer/output/QuickPhotoViewer-Setup-2.9.5.exe'
           $dist="$env:USERPROFILE/Documents/QuickPhotoViewerBuild/dist/QuickPhotoViewer"
           $p=Start-Process "$dist/QuickPhotoViewer.exe" -ArgumentList '--smoke-test' -PassThru
           if(!$p.WaitForExit(30000)){$p.Kill();throw 'Startup timeout'}
@@ -54,10 +55,18 @@ jobs:
           $target=Join-Path $env:RUNNER_TEMP 'QPVInstalledTest'
           $setup=Start-Process $exe.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-',('/DIR="'+$target+'"') -Wait -PassThru
           if($setup.ExitCode -ne 0){throw 'Installation failed'}
-          $p=Start-Process "$target/QuickPhotoViewer.exe" -ArgumentList '--smoke-test' -PassThru
+          $photo=Join-Path $env:RUNNER_TEMP 'QPV smoke photo.jpg'
+          python -c "from PIL import Image; import sys; Image.new('RGB',(300,200),'blue').save(sys.argv[1])" "$photo"
+          if($LASTEXITCODE -ne 0){throw 'Test image creation failed'}
+          $p=Start-Process "$target/QuickPhotoViewer.exe" -ArgumentList ('"'+$photo+'"'),'--smoke-test' -PassThru
           if(!$p.WaitForExit(30000)){$p.Kill();throw 'Installed viewer startup timeout'}
           if($p.ExitCode -ne 0){throw 'Installed viewer startup failed'}
           if((Get-ItemProperty 'HKLM:\Software\BANGTools\QuickPhotoViewer').Executable -ne "$target\QuickPhotoViewer.exe"){throw 'Integration registration missing'}
+          $uninstaller=Get-ChildItem $target -Filter 'unins*.exe' | Select-Object -First 1
+          if(!$uninstaller){throw 'Uninstaller missing'}
+          $u=Start-Process $uninstaller.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if($u.ExitCode -ne 0 -or (Test-Path "$target/QuickPhotoViewer.exe")){throw 'Uninstall failed'}
+          if(Test-Path 'HKLM:\Software\BANGTools\QuickPhotoViewer'){throw 'Integration registry not removed'}
           python capture_screenshot.py
           if($LASTEXITCODE -ne 0 -or !(Test-Path workspace.png)){throw 'Screenshot failed'}
           "$((Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower())  $($exe.Name)" | Set-Content -Encoding ascii "$($exe.FullName).sha256"
@@ -73,7 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v2.9.4 *> $null
+          gh release view v2.9.5 *> $null
           if($LASTEXITCODE -eq 0){exit 0}
-          gh release create v2.9.4 installer/output/QuickPhotoViewer-Setup-2.9.4.exe installer/output/QuickPhotoViewer-Setup-2.9.4.exe.sha256 workspace.png --target $env:GITHUB_SHA --title 'Quick Photo Viewer 2.9.4 - Windows Preview' --notes-file CHANGES.md
+          gh release create v2.9.5 installer/output/QuickPhotoViewer-Setup-2.9.5.exe installer/output/QuickPhotoViewer-Setup-2.9.5.exe.sha256 workspace.png --target $env:GITHUB_SHA --title 'Quick Photo Viewer 2.9.5 - Windows Preview' --notes-file CHANGES.md
           if($LASTEXITCODE -ne 0){throw 'Publishing failed'}

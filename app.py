@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (QApplication, QColorDialog, QCheckBox, QDialog, Q
     QMenu, QMessageBox, QScrollArea, QStatusBar, QStyle, QStyledItemDelegate, QToolBar,
     QToolButton, QWidget, QSizePolicy)
 
-APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.4"
+APP_NAME = "Quick Photo Viewer Pro"; VERSION = "2.9.5"
 APP_DIR = Path(__file__).resolve().parent
 ICON_DIR = APP_DIR / "icons"
 SUPPORTED = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",
@@ -989,10 +989,12 @@ def main():
     app.setStyle("Fusion"); app.setStyleSheet(STYLE)
     app.setWindowIcon(QIcon(str(ICON_DIR / "quick_photo_viewer.ico")))
     window=PhotoViewer(); window.show()
-    if "--smoke-test" in sys.argv: QTimer.singleShot(1000,app.quit)
+    smoke="--smoke-test" in sys.argv
+    if smoke: QTimer.singleShot(1000,app.quit)
     if len(sys.argv)>1:
         path=Path(sys.argv[1])
         if path.is_file() and path.suffix.lower() in SUPPORTED:
             window.load_directory(path.parent,path)
+            if smoke and (window.current_pixmap.isNull() or path not in window.image_cache):raise RuntimeError("Image-open smoke test failed")
     sys.exit(app.exec())
 if __name__=="__main__": main()
