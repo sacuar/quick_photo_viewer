@@ -1,3 +1,7 @@
+# 2.9.6
+- Replace browser-only update notifications with consent-based verified in-app installer downloads, cancellation and Windows elevation.
+- Exact version and installer asset validation, SHA-256 verification, registered-installation guard, and update regression tests.
+
 # 2.9.5
 - Remove process launching and optional cleanup page from elevated Setup. Maintenance remains available from Start menu after installation.
 - Test installed executable with a real JPEG path containing spaces; verify uninstall and integration registry removal in CI.

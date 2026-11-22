@@ -63,7 +63,7 @@ The main viewer has **no editing or OCR plugins**, and does not import external 
 
 ### Updates and privacy
 
-The **Check GitHub for updates** option compares published release versions; checking on startup is opt-in. Nothing is downloaded or installed automatically. Your photos remain local.
+**Check GitHub for updates** downloads the matching published Windows installer after your approval and verifies its size and GitHub SHA-256 digest before launching Setup with Windows elevation. New installations check at startup by default; disable this in Settings. Existing preferences are respected. Portable or unregistered copies use the official releases page. Your photos remain local.
 
 ### Contribute to Quick Photo Viewer
 
