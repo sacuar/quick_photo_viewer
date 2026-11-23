@@ -12,6 +12,14 @@
 
 </div>
 
+<div align="center">
+
+[![GitHub stars](https://img.shields.io/github/stars/sacuar/quick_photo_viewer?style=flat&label=Stars)](https://github.com/sacuar/quick_photo_viewer/stargazers) [![Windows installer downloads](https://img.shields.io/github/downloads/sacuar/quick_photo_viewer/v2.9.6/QuickPhotoViewer-Setup-2.9.6.exe?style=flat&label=Windows%20downloads)](https://github.com/sacuar/quick_photo_viewer/releases/tag/v2.9.6) [![Ubuntu package downloads](https://img.shields.io/github/downloads/sacuar/quick_photo_viewer/v2.9.6/QuickPhotoViewer-2.9.6-ubuntu24.04-amd64.deb?style=flat&label=Ubuntu%20downloads)](https://github.com/sacuar/quick_photo_viewer/releases/tag/v2.9.6)
+
+[View visitors and referral sources](https://github.com/sacuar/quick_photo_viewer/graphs/traffic) · [All releases](https://github.com/sacuar/quick_photo_viewer/releases)
+
+</div>
+
 ## Why use Quick Photo Viewer?
 
 - Navigate photo folders with thumbnails, keyboard shortcuts and mouse controls.
